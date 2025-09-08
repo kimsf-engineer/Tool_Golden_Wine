@@ -1,0 +1,46 @@
+const urls = [
+"https://hedon.com.vn/san-pham/ruou-vang-do-cinque-stelle-romance-bevanda-aromatizzata-a-base-di-vino/",
+"https://hedon.com.vn/san-pham/ruou-vang-trang-louis-eschenauer-bordeaux-moelleux/",
+"https://hedon.com.vn/san-pham/ruou-vang-trang-santorsola-asti-secco-gold-d-o-c-g/",
+"https://hedon.com.vn/san-pham/ruou-vang-trang-calvet-varietals-muscat-moelleux-medium-sweet/",
+"https://hedon.com.vn/san-pham/ruou-vang-barefoot-cellars-pink-moscato/",
+"https://hedon.com.vn/san-pham/ruou-vang-hong-barefoot-white-zinfandel-rose/",
+"https://hedon.com.vn/san-pham/ruou-vang-no-bepin-de-eto-flave-brut/",
+"https://hedon.com.vn/san-pham/ruou-vang-trang-calvet-sauternes/"
+];
+
+let failedLinks = [];
+urls.forEach((url, index) => {
+	setTimeout(() => {
+		fetch(url)
+			.then(res => {
+				if (!res.ok) {
+					// Nếu HTTP status không phải 200-299 thì coi là lỗi
+					console.log("❌ Lỗi:", url, "Status:", res.status);
+					failedLinks.push(url);
+					return null;
+				}
+				return res.text();
+			})
+			.then(html => {
+				if (!html) return; // Bỏ qua nếu lỗi
+				const blob = new Blob([html], { type: 'text/html' });
+				const link = document.createElement('a');
+				link.href = URL.createObjectURL(blob);
+				const filename = url.split('/').pop().replace(/[^\w\d]/g, '_') + '.html';
+				link.download = 'page_4_10_update_' + index;
+				link.click();
+				URL.revokeObjectURL(link.href);
+				console.log(index + 1 + "/" + urls.length);
+			})
+			.catch(err => {
+				console.log("❌ Lỗi:", url, err);
+				failedLinks.push(url);
+			})
+			.finally(() => {
+				if (index === urls.length - 1) {
+					console.log("\n===== Danh sách link lỗi =====\n" + failedLinks.join("\n"));
+				}
+			});
+	}, index * 2000); // Mỗi lần chờ 2s để tránh tải ồ ạt
+});
